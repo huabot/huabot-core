@@ -628,7 +628,7 @@ init_table(Task)
 
 class Robot(Table, Countable, Schedable):
     table_name = "robot"
-    unique_columns = ["email"]
+    unique_columns = ["name"]
     index_columns = ["user_id", "alive user_id"]
 
     def delete(self):
