@@ -20,6 +20,23 @@ def json_response(key=None, data=None, err=None):
     return json.dumps(data)
 
 
+@app.post('/api/auth')
+def auth():
+    username = request.forms.username.strip()
+    passwd = request.forms.passwd.strip()
+
+    user = User.get_by_name(username)
+
+    if user:
+        if user.passwd == passwd:
+            app.login(user.user_id)
+
+        return json_response('result', {"msg": "success"})
+
+    else:
+        return json_response(err='Invalid Username or Password')
+
+
 @app.post('/api/robots/')
 def create_robot(user):
     name = request.forms.name
