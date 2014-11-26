@@ -1,5 +1,6 @@
 from www import app, request, response
-from huabot.utils import hash_url, submit_task, sched_job, sched_task
+from huabot.utils import hash_url, submit_task
+from huabot.periodic import sched_task, sched_job
 from huabot import db
 import json
 import aiohttp
