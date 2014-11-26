@@ -7,27 +7,14 @@ __all__ = [
     "static_file", "request", "response", "template", "redirect", "views"
 ]
 
-TEMPLATE_PATH.insert(0, os.path.join(os.path.dirname(__file__), './templates'))
 from aiobottle import AsyncBottle
 app = AsyncBottle()
 from . import bottle_login
 
-login_plugin = bottle_login.Plugin(redirect_to='/signin')
+login_plugin = bottle_login.Plugin()
 app.install(login_plugin)
 
-
-@app.route('/static/<path:re:.+>')
-def server_static(path):
-    return static_file(path,  root=os.path.join(
-        os.path.dirname(__file__), 'static'))
-
-
-@app.route('/favicon.ico')
-def server_favicon():
-    return static_file('favicon.ico',  root=os.path.join(
-        os.path.dirname(__file__), 'static'))
-
-from . import views
+from . import route
 
 REDIS_PORT = os.environ.get('REDIS_PORT', 'tcp://127.0.0.1:6379')
 
