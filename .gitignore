@@ -1,0 +1,7 @@
+__pycache__
+*.swp
+config.py
+fabfile.py
+huabot.egg-info
+src
+*.py[co]
