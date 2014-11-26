@@ -5,7 +5,9 @@ except ImportError:
 
 packages = [
     'huabot',
-    'huabot.api'
+    'huabot.api',
+    'huabot.api.route',
+    'huabot.robot'
 ]
 
 requires = ['grapy', 'redis', 'aiobottle', 'beaker', 'aio_periodic']
