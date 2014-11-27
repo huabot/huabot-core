@@ -1,10 +1,9 @@
 import os
 import os.path
-from bottle import TEMPLATE_PATH, static_file, request, response,\
-    template, redirect
+from bottle import request, response
 
 __all__ = [
-    "static_file", "request", "response", "template", "redirect", "views"
+    "request", "response", "server", "app"
 ]
 
 from aiobottle import AsyncBottle
