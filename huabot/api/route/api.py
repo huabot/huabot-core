@@ -37,6 +37,12 @@ def auth():
         return json_response(err='Invalid Username or Password')
 
 
+@app.route('/api/unauth')
+def logout():
+    app.logout()
+    return json_response('result', {"msg": "success"})
+
+
 @app.post('/api/robots/')
 def create_robot(user):
     name = request.forms.name
