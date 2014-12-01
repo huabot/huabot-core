@@ -1,6 +1,4 @@
-import aiohttp
 import os
-from .utils import json_decode
 from aio_periodic import Client
 
 

@@ -3,7 +3,6 @@ from huabot.utils import hash_url, submit_task
 from huabot.periodic import sched_task, sched_robot
 from huabot import db
 import json
-import aiohttp
 from datetime import datetime, timedelta
 
 
@@ -25,7 +24,7 @@ def auth():
     username = request.forms.username.strip()
     passwd = request.forms.passwd.strip()
 
-    user = User.get_by_name(username)
+    user = db.User.get_by_name(username)
 
     if user:
         if user.passwd == passwd:

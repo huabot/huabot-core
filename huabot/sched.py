@@ -1,14 +1,12 @@
 from grapy.core import BaseScheduler
 from grapy.core.exceptions import RetryRequest
 import asyncio
-from .utils import hash_url, SpecDict, random_delay, logger, to_int, \
-    get_cls_name
+from .utils import hash_url, SpecDict, random_delay, logger, get_cls_name
 from . import db
 import random
 from time import time
 from datetime import datetime
 from .robot import RobotError
-from collections import deque
 from aio_periodic import Worker, Pool
 from grapy.utils import import_module
 import signal
