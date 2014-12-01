@@ -1,6 +1,6 @@
 from huabot.api import app, request, response
 from huabot.utils import hash_url, submit_task
-from huabot.periodic import sched_task, sched_job
+from huabot.periodic import sched_task, sched_robot
 from huabot import db
 import json
 import aiohttp
@@ -84,7 +84,7 @@ def create_robot(user):
     robot = db.Robot(None, info)
     robot.save()
     robot.sched_now()
-    yield from sched_job(robot)
+    yield from sched_robot(robot)
     for task_id in subscribe:
         db.Task(task_id).subscribed_new(robot.index)
         submit_task(db.Task(task_id))
@@ -143,7 +143,7 @@ def update_robot(robot_id, user):
     robot = db.Robot(robot_id, robot)
     robot.save()
     robot.sched_now()
-    yield from sched_job(robot)
+    yield from sched_robot(robot)
 
     old = []
     old_subscribe = old_robot.subscribe or []
@@ -184,7 +184,7 @@ def start_robot(robot_id, user):
 
     robot.save()
     robot.sched_now()
-    yield from sched_job(robot)
+    yield from sched_robot(robot)
 
     return json_response('robot', robot.payload.copy())
 
