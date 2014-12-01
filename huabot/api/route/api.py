@@ -42,6 +42,8 @@ def create_robot(user):
     name = request.forms.name
     passwd = request.forms.passwd
     subscribe = request.forms.subscribe
+    day_limit = request.forms.day_limit
+    one_by_one = request.forms.one_by_one
     extra = request.forms.extra
 
     if subscribe:
@@ -49,12 +51,21 @@ def create_robot(user):
     else:
         subscribe = []
 
+    one_by_one = False
+    if one_by_one and one_by_one == 'true':
+        one_by_one = True
+
+    if day_limit:
+        day_limit = int(day_limit)
+
     info = {
         'name': name,
         'passwd': passwd,
         'subscribe': subscribe,
         'alive': True,
-        'user_id': user.user_id
+        'day_limit': day_limit,
+        'user_id': user.user_id,
+        'one_by_one': one_by_one,
     }
 
     if extra:
@@ -80,19 +91,30 @@ def update_robot(robot_id, user):
     robot_id = int(robot_id)
     name = request.forms.name
     passwd = request.forms.passwd
+    day_limit = request.forms.day_limit
     subscribe = request.forms.subscribe
+    one_by_one = request.forms.one_by_one
 
     if subscribe:
         subscribe = [int(s) for s in subscribe.split(',') if s.strip()]
     else:
         subscribe = []
 
+    one_by_one = False
+    if one_by_one and one_by_one == 'true':
+        one_by_one = True
+
+    if day_limit:
+        day_limit = int(day_limit)
+
     info = {
         'name': name,
         'passwd': passwd,
         'forbidden': False,
         'alive': True,
+        'day_limit': day_limit,
         'subscribe': subscribe,
+        'one_by_one': one_by_one,
     }
 
     if extra:
