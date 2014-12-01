@@ -100,6 +100,7 @@ def update_robot(robot_id, user):
     day_limit = request.forms.day_limit
     subscribe = request.forms.subscribe
     one_by_one = request.forms.one_by_one
+    extra = request.forms.extra
 
     if subscribe:
         subscribe = [int(s) for s in subscribe.split(',') if s.strip()]
