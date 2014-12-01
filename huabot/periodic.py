@@ -1,27 +1,33 @@
 import aiohttp
+import os
+from .utils import json_decode
+from aio_periodic import Client
+
+
+if not os.environ.get('PERIODIC_PORT'):
+    os.environ['PERIODIC_PORT'] = "unix:///tmp/periodic.sock"
 
 
 def submit_job(job):
-    rsp = yield from aiohttp.request("POST", os.environ['PERIODIC_PORT'], 
-                                     data = job)
-
-    ret = yield from rsp.read()
-
-    return json_decode(ret)
+    client = Client()
+    client.add_server(os.environ['PERIODIC_PORT'])
+    yield from client.connect()
+    ret = yield from client.submitJob(job)
+    client.close()
+    return ret
 
 
 def remove_job(func, name):
     data = {
         "name": name,
-        "func": func,
-        "act": "remove"
+        "func": func
     }
-    rsp = yield from aiohttp.request("POST", os.environ['PERIODIC_PORT'], 
-                                     data = data)
-
-    ret = yield from rsp.read()
-
-    return json_decode(ret)
+    client = Client()
+    client.add_server(os.environ['PERIODIC_PORT'])
+    yield from client.connect()
+    ret = yield from client.removeJob(data)
+    client.close()
+    return ret
 
 
 def sched_robot(robot):
@@ -55,11 +61,16 @@ def remove_task(task):
 
 
 def status(funcName=""):
-    rsp = yield from aiohttp.request(
-        "GET", os.environ['PERIODIC_PORT'] + '/' + funcName)
+    client = Client()
+    client.add_server(os.environ['PERIODIC_PORT'])
+    yield from client.connect()
+    ret = yield from client.status()
+    client.close()
 
-    ret = yield from rsp.read()
-    return json_decode(ret)
+    if funcName:
+        return ret.get(funcName, {})
+
+    return {}
 
 
 def robot_status():
