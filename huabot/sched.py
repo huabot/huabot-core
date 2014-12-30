@@ -13,7 +13,7 @@ import signal
 import os
 
 
-class HSched(object):
+class RobotBased(object):
     def __init__(self, pool_size):
         self.started = False
         self.connect_lock = asyncio.Lock()
@@ -115,7 +115,7 @@ class HSched(object):
         # self.loop.call_later(600, self.engine.shutdown)
 
 
-class _UniqScheduler(BaseScheduler):
+class UniqScheduler(BaseScheduler):
     def __init__(self, tasks=4, loop=None):
         BaseScheduler.__init__(self)
         self.loop = loop
@@ -287,9 +287,9 @@ class _UniqScheduler(BaseScheduler):
             logger.exception(e)
 
 
-class UniqHScheduler(HSched, _UniqScheduler):
+class RobotBasedScheduler(HSched, UniqScheduler):
     def __init__(self, tasks=4, loop=None):
-        HSched.__init__(self, tasks * 2)
-        _UniqScheduler.__init__(self, tasks=tasks, loop=loop)
+        RobotBased.__init__(self, tasks * 2)
+        UniqScheduler.__init__(self, tasks=tasks, loop=loop)
         self.loop.add_signal_handler(signal.SIGINT, self.signal_handler)
         self.loop.add_signal_handler(signal.SIGTERM, self.signal_handler)
