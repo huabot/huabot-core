@@ -6,7 +6,6 @@ except ImportError:
 packages = [
     'huabot',
     'huabot.api',
-    'huabot.api.route',
     'huabot.robot'
 ]
 
