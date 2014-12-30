@@ -287,7 +287,7 @@ class UniqScheduler(BaseScheduler):
             logger.exception(e)
 
 
-class RobotBasedScheduler(HSched, UniqScheduler):
+class RobotBasedScheduler(RobotBased, UniqScheduler):
     def __init__(self, tasks=4, loop=None):
         RobotBased.__init__(self, tasks * 2)
         UniqScheduler.__init__(self, tasks=tasks, loop=loop)
