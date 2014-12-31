@@ -124,6 +124,7 @@ class CommonScheduler(BaseScheduler):
 
         self._sem = asyncio.Semaphore(tasks)
         self._item_lock = asyncio.Lock()
+        self._process_on_task = True
 
     def push_req(self, req):
         key = hash_url(req.url)
@@ -161,9 +162,11 @@ class CommonScheduler(BaseScheduler):
             return
 
         subscribe = []
-        for tid in robot.subscribe:
-            if db.Task(tid).link_count() > 0:
-                subscribe.append(tid)
+        if self._process_on_task:
+            for tid in robot.subscribe:
+                if db.Task(tid).link_count() > 0:
+                    subscribe.append(tid)
+
         if not subscribe:
             robot.payload['alive'] = False
             robot.remove_sched()
@@ -294,3 +297,12 @@ class RobotBasedScheduler(RobotBased, CommonScheduler):
         CommonScheduler.__init__(self, tasks=tasks, loop=loop)
         self.loop.add_signal_handler(signal.SIGINT, self.signal_handler)
         self.loop.add_signal_handler(signal.SIGTERM, self.signal_handler)
+
+
+class RobotOnlyScheduler(RobotBasedScheduler):
+    def __init__(self, tasks=4, loop=None):
+        RobotBasedScheduler.__init__(self, tasks, loop)
+        self._process_on_task = False
+
+    def push_item(self, item, force_summit=True):
+        yield from RobotBasedScheduler.push_item(self, item, True)
