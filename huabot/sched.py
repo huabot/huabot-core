@@ -14,13 +14,19 @@ import os
 
 
 class RobotBased(object):
-    def __init__(self, pool_size):
+    def __init__(self, pool_size, loop=None):
         self.started = False
         self.connect_lock = asyncio.Lock()
         self.grabJob_lock = asyncio.Lock()
         self.alive = True
         self.tasks = []
         self.pool = Pool(self.init_worker, pool_size, 500)
+
+        self.loop = loop
+        if not self.loop:
+            self.loop = asyncio.get_event_loop()
+        self.loop.add_signal_handler(signal.SIGINT, self.signal_handler)
+        self.loop.add_signal_handler(signal.SIGTERM, self.signal_handler)
 
     def init_worker(self):
         client = Worker()
@@ -295,8 +301,6 @@ class RobotBasedScheduler(RobotBased, CommonScheduler):
     def __init__(self, tasks=4, loop=None):
         RobotBased.__init__(self, tasks * 2)
         CommonScheduler.__init__(self, tasks=tasks, loop=loop)
-        self.loop.add_signal_handler(signal.SIGINT, self.signal_handler)
-        self.loop.add_signal_handler(signal.SIGTERM, self.signal_handler)
 
 
 class RobotOnlyScheduler(RobotBasedScheduler):
