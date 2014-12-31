@@ -115,7 +115,7 @@ class RobotBased(object):
         # self.loop.call_later(600, self.engine.shutdown)
 
 
-class UniqScheduler(BaseScheduler):
+class CommonScheduler(BaseScheduler):
     def __init__(self, tasks=4, loop=None):
         BaseScheduler.__init__(self)
         self.loop = loop
@@ -287,9 +287,10 @@ class UniqScheduler(BaseScheduler):
             logger.exception(e)
 
 
-class RobotBasedScheduler(RobotBased, UniqScheduler):
+
+class RobotBasedScheduler(RobotBased, CommonScheduler):
     def __init__(self, tasks=4, loop=None):
         RobotBased.__init__(self, tasks * 2)
-        UniqScheduler.__init__(self, tasks=tasks, loop=loop)
+        CommonScheduler.__init__(self, tasks=tasks, loop=loop)
         self.loop.add_signal_handler(signal.SIGINT, self.signal_handler)
         self.loop.add_signal_handler(signal.SIGTERM, self.signal_handler)
