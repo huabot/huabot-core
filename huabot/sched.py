@@ -388,7 +388,7 @@ class TaskBased(RobotBased):
         except Exception as e:
             logger.exception(e)
 
-class TaskBasedScheduler(TaskBased, CommonScheduler):
+class TaskOnlyScheduler(TaskBased, CommonScheduler):
     def __init__(self, tasks=4, loop=None):
         TaskBased.__init__(self, tasks * 2)
         CommonScheduler.__init__(self, tasks=tasks, loop=loop)
