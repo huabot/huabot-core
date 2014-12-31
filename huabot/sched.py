@@ -120,6 +120,18 @@ class RobotBased(object):
         task.add_done_callback(lambda t: self.engine.shutdown())
         # self.loop.call_later(600, self.engine.shutdown)
 
+    def push_item(self, item, force_submit=False):
+        try:
+            robot = db.Robot(item['robot_id'])
+            if force_submit or robot.one_by_one is not True:
+                yield from self.submit_item(item)
+            else:
+                self.save_item(item)
+        except RobotError as e:
+            raise e
+        except Exception as e:
+            logger.exception(e)
+
 
 class CommonScheduler(BaseScheduler):
     def __init__(self, tasks=4, loop=None):
@@ -180,6 +192,33 @@ class CommonScheduler(BaseScheduler):
             return
 
         yield from self.process_on_task(robot, subscribe)
+
+    def task_main(self, task):
+        while True:
+            hash_url = task.link_pop()
+            if not hash_url:
+                task.link_drop()
+                break
+
+            link = db.Link(hash_url)
+            req = link.req
+            if not req:
+                break
+
+            callback_args = list(req.callback_args)
+            callback_args.append(SpecDict({
+                'task_id': int(req.group),
+            }))
+            req.callback_args = tuple(callback_args)
+
+            try:
+                yield from self.submit_req(req)
+                link.delete()
+            except RetryRequest:
+                task.link_push(hash_url)
+            except Exception as e:
+                logger.exception(e)
+                task.link_push(hash_url)
 
     def process_on_task(self, robot, subscribe):
         robot_succeed_count = robot.succeed_count
@@ -278,23 +317,13 @@ class CommonScheduler(BaseScheduler):
             if robot.succeed_count > robot_succeed_count:
                 break
 
-    def push_item(self, item, force_submit=False):
-        try:
-            robot = db.Robot(item['robot_id'])
-            if force_submit or robot.one_by_one is not True:
-                yield from self.submit_item(item)
-            else:
-                key = hash_url(item.imgurl)
-                data = item.copy()
-                data['hash_url'] = key
-                data['cls_name'] = get_cls_name(item)
-                ite = db.Item(None, data)
-                ite.save()
-        except RobotError as e:
-            raise e
-        except Exception as e:
-            logger.exception(e)
-
+    def save_item(self, item):
+        key = hash_url(item.imgurl)
+        data = item.copy()
+        data['hash_url'] = key
+        data['cls_name'] = get_cls_name(item)
+        ite = db.Item(None, data)
+        ite.save()
 
 
 class RobotBasedScheduler(RobotBased, CommonScheduler):
@@ -310,3 +339,56 @@ class RobotOnlyScheduler(RobotBasedScheduler):
 
     def push_item(self, item, force_summit=True):
         yield from RobotBasedScheduler.push_item(self, item, True)
+
+
+class TaskBased(RobotBased):
+
+    def init_worker(self):
+        client = Worker()
+        client.add_server(os.environ["PERIODIC_PORT"])
+        yield from client.connect()
+        yield from client.add_func("process_task")
+        return client
+
+    def run(self, job):
+
+        if job.func_name != 'process_task':
+            return
+
+        try:
+            task = db.Task(int(job.name))
+            if not task.payload:
+                yield from job.done()
+                return
+        except Exception as e:
+            logger.exception(e)
+            yield from job.done()
+            return
+
+        try:
+            yield from self.task_main(task)
+        finally:
+            yield from self.done(job)
+
+    def done(self, job):
+        now = datetime.now()
+        day = "%s-%s-%s" % (now.year, now.month, now.day)
+        task = db.Task(int(job.name))
+        day_succeed_count = task.get_time_succeed_count(day)
+        delay = random_delay(day_succeed_count, task.day_limit)
+        if task.alive:
+            task.sched_later(delay)
+            yield from job.sched_later(delay)
+        else:
+            yield from job.done()
+
+    def push_item(self, item, force_submit=False):
+        try:
+            self.save_item(item)
+        except Exception as e:
+            logger.exception(e)
+
+class TaskBasedScheduler(TaskBased, CommonScheduler):
+    def __init__(self, tasks=4, loop=None):
+        TaskBased.__init__(self, tasks * 2)
+        CommonScheduler.__init__(self, tasks=tasks, loop=loop)
