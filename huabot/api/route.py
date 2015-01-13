@@ -203,6 +203,57 @@ def stop_robot(robot_id, user):
     return json_response('robot', robot.payload.copy())
 
 
+@app.get('/api/robots/')
+def get_robots(user):
+    page = request.query.page
+    limit = request.query.limit
+    if page:
+        page = int(page)
+    else:
+        page = 1
+
+    if limit:
+        limit = int(limit)
+    else:
+        limit = 20
+
+    if limit > 100:
+        limit = 100
+
+    robot_count = user.robot_count
+
+    start = limit * (page - 1)
+    stop = start + limit - 1
+
+    if stop > robot_count:
+        stop = robot_count
+
+    if start > robot_count:
+        start = robot_count - limit
+
+    robot_start = robot_count - stop
+    robot_stop = robot_count - start
+
+    robot_ids = db.Task.range_by_user_id(user.user_id, robot_start, robot_stop)
+    robot_ids = sorted(robot_ids, key=lambda x: int(x.member), reverse=True)
+
+    robots = []
+    for index in robot_ids:
+        robot = db.Task(index.member)
+        if not robot.payload:
+            continue
+        data = robot.payload.copy()
+        data['succeed_count'] = robot.succeed_count
+        robots.append(data)
+
+    return json_response(data={
+        'total': robot_count,
+        'page': page,
+        'limit': limit,
+        'robots': robots
+    })
+
+
 @app.post('/api/tasks/')
 def create_task(user):
     url = request.forms.url
