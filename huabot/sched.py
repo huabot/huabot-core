@@ -374,8 +374,7 @@ class TaskBased(RobotBased):
         now = datetime.now()
         day = "%s-%s-%s" % (now.year, now.month, now.day)
         task = db.Task(int(job.name))
-        day_succeed_count = task.get_time_succeed_count(day)
-        delay = random_delay(day_succeed_count, task.day_limit)
+        delay = task.refresh_delay or 3600 * 10
         if task.alive:
             task.sched_later(delay)
             yield from job.sched_later(delay)
