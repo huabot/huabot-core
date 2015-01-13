@@ -382,13 +382,13 @@ class TaskBased(RobotBased):
         else:
             yield from job.done()
 
-    def push_item(self, item, force_submit=False):
+    def push_item(self, item):
         try:
-            self.save_item(item)
+            self.submit_item(item)
         except Exception as e:
             logger.exception(e)
 
-class TaskOnlyScheduler(TaskBased, CommonScheduler):
+class TaskScheduler(TaskBased, CommonScheduler):
     def __init__(self, tasks=4, loop=None):
         TaskBased.__init__(self, tasks * 2)
         CommonScheduler.__init__(self, tasks=tasks, loop=loop)
