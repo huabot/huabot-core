@@ -430,7 +430,7 @@ def get_tasks(user):
 
 
 @app.get("/api/<type:re:year|month|day|hour|minute>/succeed_count")
-def get_minute_succeed_count(type, user):
+def get_succeed_count(type, user):
     now = datetime.now()
     members = []
 
@@ -476,7 +476,7 @@ def get_minute_succeed_count(type, user):
 @app.get(
     '/api/robots/<robot_id:re:\d+>/'
     '<type:re:year|month|day|hour|minute>/succeed_count')
-def get_robot_hour_succeed_count(robot_id, type, user):
+def get_robot_succeed_count(robot_id, type, user):
     now = datetime.now()
     members = []
     subfix = ""
@@ -525,7 +525,7 @@ def get_robot_hour_succeed_count(robot_id, type, user):
 @app.get(
     '/api/tasks/<task_id:re:\d+>/'
     '<type:re:year|month|day|hour|minute>/succeed_count')
-def get_task_hour_succeed_count(task_id, type, user):
+def get_task_succeed_count(task_id, type, user):
     now = datetime.now()
     members = []
     subfix = ""
