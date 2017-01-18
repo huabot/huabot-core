@@ -6,11 +6,12 @@ import json
 from datetime import datetime, timedelta
 
 
-def json_response(key=None, data=None, err=None):
+def json_response(key=None, data=None, err=None, status=200):
     response.set_header('content-type', 'application/json')
     if data and (isinstance(data, dict) and data.get("err")):
         err = data['err']
 
+    response.status = status
     if err:
         return json.dumps({'err': err})
     if key:
@@ -33,7 +34,7 @@ def auth():
         return json_response('result', {"msg": "success"})
 
     else:
-        return json_response(err='Invalid Username or Password')
+        return json_response(err='Invalid Username or Password', status=400)
 
 
 @app.route('/api/unauth')
@@ -78,7 +79,7 @@ def create_robot(user):
         info.update(extra)
 
     if db.Robot.get_by_name(name):
-        return json_response(err='robot %s is already added.' % name)
+        return json_response(err='robot %s is already added.' % name, status=400)
 
     robot = db.Robot(None, info)
     robot.save()
@@ -129,14 +130,14 @@ def update_robot(robot_id, user):
 
     old_robot = db.Robot.get(robot_id)
     if not old_robot:
-        return json_response(err='robot %s not found' % robot_id)
+        return json_response(err='robot %s not found' % robot_id, status=404)
 
     if old_robot.user_id != user.user_id:
-        return json_response(err='no permission')
+        return json_response(err='no permission', status = 403)
 
     if old_robot.name != info['name']:
         if db.Robot.get_by_name(name):
-            return json_response(err='robot %s is already added.' % name)
+            return json_response(err='robot %s is already added.' % name, status=400)
 
     robot = old_robot.payload.copy()
     robot.update(info)
@@ -166,7 +167,7 @@ def remove_robot(robot_id, user):
     robot_id = int(robot_id)
     robot = db.Robot(robot_id)
     if robot.user_id != user.user_id:
-        return json_response(err='no permission')
+        return json_response(err='no permission', status=403)
 
     robot.delete()
 
@@ -178,7 +179,7 @@ def start_robot(robot_id, user):
     robot_id = int(robot_id)
     robot = db.Robot(robot_id)
     if robot.user_id != user.user_id:
-        return json_response(err='no permission')
+        return json_response(err='no permission', status=403)
     robot.payload['forbidden'] = False
     robot.payload['alive'] = True
 
@@ -194,7 +195,7 @@ def stop_robot(robot_id, user):
     robot_id = int(robot_id)
     robot = db.Robot(robot_id)
     if robot.user_id != user.user_id:
-        return json_response(err='no permission')
+        return json_response(err='no permission', status=403)
     robot.payload['alive'] = False
 
     robot.save()
@@ -282,7 +283,7 @@ def create_task(user):
     }
     info['hash_url'] = hash_url(url)
     if db.Task.get_by_hash_url(info['hash_url']):
-        return json_response(err='task %s is already added' % url)
+        return json_response(err='task %s is already added' % url, status=400)
 
     if extra:
         extra = json.loads(extra)
@@ -332,14 +333,14 @@ def update_task(task_id, user):
 
     old_task = db.Task(task_id)
     if not old_task.payload:
-        return json_response(err='task %s not found' % task_id)
+        return json_response(err='task %s not found' % task_id, status=404)
 
     if old_task.user_id != user.user_id:
-        return json_response(err='no permission')
+        return json_response(err='no permission', status = 403)
 
     if old_task.url != info['url']:
         if db.Task.get_by_hash_url(info['hash_url']):
-            return json_response(err='task %s is already added' % url)
+            return json_response(err='task %s is already added' % url, status=400)
 
     task = old_task.payload.copy()
     task.update(info)
@@ -359,7 +360,7 @@ def remove_task(task_id, user):
     task_id = int(task_id)
     task = db.Task(task_id)
     if task.user_id != user.user_id:
-        return json_response(err='no permission')
+        return json_response(err='no permission', status=403)
 
     task.delete()
 
@@ -371,7 +372,7 @@ def remove_task_link(task_id, user):
     task_id = int(task_id)
     task = db.Task(task_id)
     if task.user_id != user.user_id:
-        return json_response(err='no permission')
+        return json_response(err='no permission', status=403)
 
     task.clear_uniq()
 
