@@ -5,7 +5,7 @@ __license__ = 'MIT'
 # CUT HERE (see setup.py)
 
 import inspect
-from bottle import request, redirect, PluginError
+from bottle import request, redirect, PluginError, response
 from huabot import db
 
 
@@ -76,6 +76,7 @@ class LoginPlugin(object):
                 return callback(*args, **kwargs)
             if redirect_to:
                 return redirect(redirect_to)
+            response.status = 403
             return {'err': 'not permission'}
 
         # Replace the route callback with the wrapped one.
