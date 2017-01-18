@@ -206,31 +206,31 @@ def stop_robot(robot_id, user):
 
 @app.get('/api/robots/')
 def get_robots(user):
-    page = request.query.page
-    limit = request.query.limit
-    if page:
-        page = int(page)
+    skip = request.query.skip
+    size = request.query.size
+    if skip:
+        skip = int(skip)
     else:
-        page = 1
+        skip = 1
 
-    if limit:
-        limit = int(limit)
+    if size:
+        size = int(size)
     else:
-        limit = 20
+        size = 20
 
-    if limit > 100:
-        limit = 100
+    if size > 100:
+        size = 100
 
     robot_count = user.robot_count
 
-    start = limit * (page - 1)
-    stop = start + limit - 1
+    start = skip
+    stop = start + size - 1
 
     if stop > robot_count:
         stop = robot_count
 
     if start > robot_count:
-        start = robot_count - limit
+        start = robot_count - size
 
     robot_start = robot_count - stop
     robot_stop = robot_count - start
@@ -249,8 +249,8 @@ def get_robots(user):
 
     return json_response(data={
         'total': robot_count,
-        'page': page,
-        'limit': limit,
+        'skip': skip,
+        'size': size,
         'robots': robots
     })
 
@@ -381,31 +381,31 @@ def remove_task_link(task_id, user):
 
 @app.get('/api/tasks/')
 def get_tasks(user):
-    page = request.query.page
-    limit = request.query.limit
-    if page:
-        page = int(page)
+    skip = request.query.skip
+    size = request.query.size
+    if skip:
+        skip = int(skip)
     else:
-        page = 1
+        skip = 0
 
-    if limit:
-        limit = int(limit)
+    if size:
+        size = int(size)
     else:
-        limit = 20
+        size = 20
 
-    if limit > 100:
-        limit = 100
+    if size > 100:
+        size = 100
 
     task_count = user.task_count
 
-    start = limit * (page - 1)
-    stop = start + limit - 1
+    start = skip
+    stop = start + size - 1
 
     if stop > task_count:
         stop = task_count
 
     if start > task_count:
-        start = task_count - limit
+        start = task_count - size
 
     task_start = task_count - stop
     task_stop = task_count - start
@@ -424,8 +424,8 @@ def get_tasks(user):
 
     return json_response(data={
         'total': task_count,
-        'page': page,
-        'limit': limit,
+        'skip': skip,
+        'size': size,
         'tasks': tasks
     })
 
